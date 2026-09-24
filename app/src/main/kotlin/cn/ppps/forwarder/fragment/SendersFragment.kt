@@ -19,42 +19,16 @@ import cn.ppps.forwarder.database.entity.Sender
 import cn.ppps.forwarder.database.viewmodel.BaseViewModelFactory
 import cn.ppps.forwarder.database.viewmodel.SenderViewModel
 import cn.ppps.forwarder.databinding.FragmentSendersBinding
-import cn.ppps.forwarder.fragment.senders.BarkFragment
-import cn.ppps.forwarder.fragment.senders.DingtalkGroupRobotFragment
-import cn.ppps.forwarder.fragment.senders.DingtalkInnerRobotFragment
 import cn.ppps.forwarder.fragment.senders.EmailFragment
-import cn.ppps.forwarder.fragment.senders.FeishuAppFragment
-import cn.ppps.forwarder.fragment.senders.FeishuFragment
-import cn.ppps.forwarder.fragment.senders.GotifyFragment
-import cn.ppps.forwarder.fragment.senders.PushplusFragment
 import cn.ppps.forwarder.fragment.senders.ServerchanFragment
-import cn.ppps.forwarder.fragment.senders.SmsFragment
-import cn.ppps.forwarder.fragment.senders.SocketFragment
-import cn.ppps.forwarder.fragment.senders.TelegramFragment
-import cn.ppps.forwarder.fragment.senders.UrlSchemeFragment
-import cn.ppps.forwarder.fragment.senders.WebhookFragment
-import cn.ppps.forwarder.fragment.senders.WeworkAgentFragment
-import cn.ppps.forwarder.fragment.senders.WeworkRobotFragment
+import cn.ppps.forwarder.fragment.senders.WeChatFragment
 import cn.ppps.forwarder.utils.KEY_SENDER_CLONE
 import cn.ppps.forwarder.utils.KEY_SENDER_ID
 import cn.ppps.forwarder.utils.KEY_SENDER_TYPE
 import cn.ppps.forwarder.utils.Log
-import cn.ppps.forwarder.utils.TYPE_BARK
-import cn.ppps.forwarder.utils.TYPE_DINGTALK_GROUP_ROBOT
-import cn.ppps.forwarder.utils.TYPE_DINGTALK_INNER_ROBOT
 import cn.ppps.forwarder.utils.TYPE_EMAIL
-import cn.ppps.forwarder.utils.TYPE_FEISHU
-import cn.ppps.forwarder.utils.TYPE_FEISHU_APP
-import cn.ppps.forwarder.utils.TYPE_GOTIFY
-import cn.ppps.forwarder.utils.TYPE_PUSHPLUS
 import cn.ppps.forwarder.utils.TYPE_SERVERCHAN
-import cn.ppps.forwarder.utils.TYPE_SMS
-import cn.ppps.forwarder.utils.TYPE_SOCKET
-import cn.ppps.forwarder.utils.TYPE_TELEGRAM
-import cn.ppps.forwarder.utils.TYPE_URL_SCHEME
-import cn.ppps.forwarder.utils.TYPE_WEBHOOK
-import cn.ppps.forwarder.utils.TYPE_WEWORK_AGENT
-import cn.ppps.forwarder.utils.TYPE_WEWORK_ROBOT
+import cn.ppps.forwarder.utils.TYPE_WECHAT
 import cn.ppps.forwarder.utils.XToastUtils
 import com.scwang.smartrefresh.layout.api.RefreshLayout
 import com.xuexiang.xaop.annotation.SingleClick
@@ -87,48 +61,17 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
     private val viewModel by viewModels<SenderViewModel> { BaseViewModelFactory(context) }
     private val dialog: BottomSheetDialog by lazy { BottomSheetDialog(requireContext()) }
     private var currentStatus: Int = 1
+
+    //注意：SENDER_FRAGMENT_LIST 的每个元素必须与 SENDER_TYPE_LIST 同下标一一对应
+    private val SENDER_TYPE_LIST = listOf(TYPE_EMAIL, TYPE_SERVERCHAN, TYPE_WECHAT)
+
     private var SENDER_FRAGMENT_LIST = listOf(
-        PageInfo(
-            getString(R.string.dingtalk_robot),
-            "cn.ppps.forwarder.fragment.senders.DingtalkGroupRobotFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_dingtalk
-        ),
         PageInfo(
             getString(R.string.email),
             "cn.ppps.forwarder.fragment.senders.EmailFragment",
             "{\"\":\"\"}",
             CoreAnim.slide,
             R.drawable.icon_email
-        ),
-        PageInfo(
-            getString(R.string.bark),
-            "cn.ppps.forwarder.fragment.senders.BarkFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_bark
-        ),
-        PageInfo(
-            getString(R.string.webhook),
-            "cn.ppps.forwarder.fragment.senders.WebhookFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_webhook
-        ),
-        PageInfo(
-            getString(R.string.wework_robot),
-            "cn.ppps.forwarder.fragment.senders.WeworkRobotFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_wework_robot
-        ),
-        PageInfo(
-            getString(R.string.wework_agent),
-            "cn.ppps.forwarder.fragment.senders.WeworkAgentFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_wework_agent
         ),
         PageInfo(
             getString(R.string.server_chan),
@@ -138,67 +81,11 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
             R.drawable.icon_serverchan
         ),
         PageInfo(
-            getString(R.string.telegram),
-            "cn.ppps.forwarder.fragment.senders.TelegramFragment",
+            getString(R.string.wechat),
+            "cn.ppps.forwarder.fragment.senders.WeChatFragment",
             "{\"\":\"\"}",
             CoreAnim.slide,
-            R.drawable.icon_telegram
-        ),
-        PageInfo(
-            getString(R.string.sms_menu),
-            "cn.ppps.forwarder.fragment.senders.SmsFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_sms
-        ),
-        PageInfo(
-            getString(R.string.feishu),
-            "cn.ppps.forwarder.fragment.senders.FeishuFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_feishu
-        ),
-        PageInfo(
-            getString(R.string.pushplus),
-            "cn.ppps.forwarder.fragment.senders.PushplusFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_pushplus
-        ),
-        PageInfo(
-            getString(R.string.gotify),
-            "cn.ppps.forwarder.fragment.senders.GotifyFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_gotify
-        ),
-        PageInfo(
-            getString(R.string.dingtalk_inner_robot),
-            "cn.ppps.forwarder.fragment.senders.DingtalkInnerRobotFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_dingtalk_inner
-        ),
-        PageInfo(
-            getString(R.string.feishu_app),
-            "cn.ppps.forwarder.fragment.senders.FeishuAppFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_feishu_app
-        ),
-        PageInfo(
-            getString(R.string.url_scheme),
-            "cn.ppps.forwarder.fragment.senders.UrlSchemeFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_url_scheme
-        ),
-        PageInfo(
-            getString(R.string.socket),
-            "cn.ppps.forwarder.fragment.senders.SocketFragment",
-            "{\"\":\"\"}",
-            CoreAnim.slide,
-            R.drawable.icon_socket
+            R.drawable.icon_wechat
         ),
     )
 
@@ -326,7 +213,7 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
             @Suppress("UNCHECKED_CAST")
             PageOption.to(Class.forName(widgetInfo.classPath) as Class<XPageFragment>) //跳转的fragment
                 .setNewActivity(true)
-                .putInt(KEY_SENDER_TYPE, pos) //注意：目前刚好是这个顺序而已
+                .putInt(KEY_SENDER_TYPE, SENDER_TYPE_LIST.getOrElse(pos) { TYPE_EMAIL })
                 .open(this)
             dialog.dismiss()
         } catch (e: Exception) {
@@ -338,23 +225,10 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
 
     private fun getFragment(type: Int): Class<out XPageFragment> {
         return when (type) {
-            TYPE_DINGTALK_GROUP_ROBOT -> DingtalkGroupRobotFragment::class.java
             TYPE_EMAIL -> EmailFragment::class.java
-            TYPE_BARK -> BarkFragment::class.java
-            TYPE_WEBHOOK -> WebhookFragment::class.java
-            TYPE_WEWORK_ROBOT -> WeworkRobotFragment::class.java
-            TYPE_WEWORK_AGENT -> WeworkAgentFragment::class.java
             TYPE_SERVERCHAN -> ServerchanFragment::class.java
-            TYPE_TELEGRAM -> TelegramFragment::class.java
-            TYPE_SMS -> SmsFragment::class.java
-            TYPE_FEISHU -> FeishuFragment::class.java
-            TYPE_PUSHPLUS -> PushplusFragment::class.java
-            TYPE_GOTIFY -> GotifyFragment::class.java
-            TYPE_DINGTALK_INNER_ROBOT -> DingtalkInnerRobotFragment::class.java
-            TYPE_FEISHU_APP -> FeishuAppFragment::class.java
-            TYPE_URL_SCHEME -> UrlSchemeFragment::class.java
-            TYPE_SOCKET -> SocketFragment::class.java
-            else -> DingtalkGroupRobotFragment::class.java
+            TYPE_WECHAT -> WeChatFragment::class.java
+            else -> EmailFragment::class.java
         }
     }
 

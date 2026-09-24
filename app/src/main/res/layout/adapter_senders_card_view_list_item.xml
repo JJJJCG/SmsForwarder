@@ -27,7 +27,7 @@
                 android:layout_width="@dimen/card_view_icon_size"
                 android:layout_height="@dimen/card_view_icon_size"
                 android:scaleType="fitCenter"
-                android:src="@drawable/icon_sms"
+                android:src="@drawable/ic_forwarder"
                 tools:ignore="ContentDescription,ImageContrastCheck" />
 
             <ImageView

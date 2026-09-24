@@ -12,12 +12,6 @@ class BaseViewModelFactory(private val context: Context?) : ViewModelProvider.Fa
         if (context == null) throw IllegalArgumentException("Context CAN NOT BE null")
 
         when {
-            modelClass.isAssignableFrom(FrpcViewModel::class.java) -> {
-                val frpcDao = AppDatabase.getInstance(context).frpcDao()
-                @Suppress("UNCHECKED_CAST")
-                return FrpcViewModel(frpcDao) as T
-            }
-
             modelClass.isAssignableFrom(MsgViewModel::class.java) -> {
                 val msgDao = AppDatabase.getInstance(context).msgDao()
                 @Suppress("UNCHECKED_CAST")
@@ -40,12 +34,6 @@ class BaseViewModelFactory(private val context: Context?) : ViewModelProvider.Fa
                 val senderDao = AppDatabase.getInstance(context).senderDao()
                 @Suppress("UNCHECKED_CAST")
                 return SenderViewModel(senderDao) as T
-            }
-
-            modelClass.isAssignableFrom(TaskViewModel::class.java) -> {
-                val taskDao = AppDatabase.getInstance(context).taskDao()
-                @Suppress("UNCHECKED_CAST")
-                return TaskViewModel(taskDao) as T
             }
         }
 

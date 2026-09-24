@@ -13,16 +13,8 @@ import android.os.Build
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import androidx.annotation.RequiresApi
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import cn.ppps.forwarder.utils.DELAY_TIME_AFTER_SIM_READY
 import cn.ppps.forwarder.utils.Log
-import cn.ppps.forwarder.utils.TASK_CONDITION_NETWORK
-import cn.ppps.forwarder.utils.TaskWorker
 import cn.ppps.forwarder.utils.task.TaskUtils
-import cn.ppps.forwarder.workers.NetworkWorker
-import java.util.concurrent.TimeUnit
 
 @Suppress("PrivatePropertyName", "DEPRECATION", "UNUSED_PARAMETER")
 class NetworkChangeReceiver : BroadcastReceiver() {
@@ -51,9 +43,6 @@ class NetworkChangeReceiver : BroadcastReceiver() {
     }
 
     private fun handleConnectivityChange(context: Context) {
-        val networkStateOld = TaskUtils.networkState
-        val dataSimSlotOld = TaskUtils.dataSimSlot
-        val wifiSsidOld = TaskUtils.wifiSsid
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         if (networkInfo != null && networkInfo.isConnected) {
@@ -76,22 +65,6 @@ class NetworkChangeReceiver : BroadcastReceiver() {
             TaskUtils.dataSimSlot = 0
             TaskUtils.wifiSsid = ""
         }
-
-        //网络状态未改变，不执行任务，避免重复通知
-        if (networkStateOld == TaskUtils.networkState && dataSimSlotOld == TaskUtils.dataSimSlot && wifiSsidOld == TaskUtils.wifiSsid) {
-            Log.d(TAG, "Network State Not Changed")
-            return
-        }
-
-        //【注意】延迟5秒（给够搜索信号时间）才执行任务
-        val request = OneTimeWorkRequestBuilder<NetworkWorker>()
-            .setInitialDelay(DELAY_TIME_AFTER_SIM_READY, TimeUnit.MILLISECONDS)
-            .setInputData(
-                workDataOf(
-                    TaskWorker.CONDITION_TYPE to TASK_CONDITION_NETWORK,
-                )
-            ).build()
-        WorkManager.getInstance(context).enqueue(request)
     }
 
     private fun handleWifiStateChanged(context: Context, intent: Intent) {

@@ -1,58 +1,142 @@
 name: Release
 
-# 触发器
+# 触发方式：
+#   1) 推送 v* 标签（如 v3.5.0-slim）
+#   2) 手动触发，填写 release 标签
 on:
   push:
     tags:
-      - v*
-  pull_request:
-    tags:
-      - v*
+      - 'v*'
   workflow_dispatch:
     inputs:
-      root_sol:
-        description: "Release Title"
+      tag:
+        description: 'Release 标签（手动触发时使用，例如 v3.5.0-slim）'
         required: true
-        default: "SmsForwarder"
+        default: 'v3.5.0-slim'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # 注意：根 build.gradle 里 setBuildDir(rootDir/build/...)
+  APK_DIR: build/app/outputs/apk/release
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
-      # 检出代码
-      - uses: actions/checkout@v4
-      # 设置jdk环境为11
-      - name: set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-          java-package: jdk
-      # 获取打包秘钥
-      - name: Checkout Android Keystore
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: pppscn/keystore
-          token: ${{ secrets.TOKEN }} # 连接仓库的token,需要单独配置
-          path: keystore # 仓库的根目录名
-      # 打包release
-      - name: Build with Gradle
-        run: bash ./gradlew assembleRelease
-      # 创建release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
         with:
-          tag_name: ${{ github.ref }}
-          release_name: SmsForwarder ${{ github.ref }}
+          distribution: zulu
+          java-version: '11'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK components
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager --install "platforms;android-33" "build-tools;33.0.1" "platform-tools"
+
+      - name: Restore keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "::error::缺少 KEYSTORE_BASE64 secret，无法签名"
+            exit 1
+          fi
+          mkdir -p keystore
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > keystore/smsf-slim.p12
+          {
+            echo "keyAlias=${KEY_ALIAS}"
+            echo "keyPassword=${KEY_PASSWORD}"
+            echo "storeFile=../keystore/smsf-slim.p12"
+            echo "storePassword=${KEYSTORE_PASSWORD}"
+            echo "storeType=PKCS12"
+          } > keystore/keystore.properties
+          ls -l keystore/
+
+      # gradle.properties 里是 -Xmx16g，标准 runner 内存不够，按 CI 环境收敛
+      - name: Tune Gradle for CI runner
+        run: |
+          sed -i 's|^org.gradle.jvmargs=.*|org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8|' gradle.properties
+          grep -n '^org.gradle.jvmargs=' gradle.properties
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Build release (arm64-v8a)
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace --no-daemon
+
+      - name: List APK
+        run: ls -lh "$APK_DIR"
+
+      - name: Resolve release tag
+        id: rel
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmsForwarder-arm64-v8a-${{ steps.rel.outputs.tag }}
+          path: ${{ env.APK_DIR }}/*.apk
+          if-no-files-found: error
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.rel.outputs.tag }}
+          name: SmsForwarder 精简版 ${{ steps.rel.outputs.tag }}
           draft: false
           prerelease: false
-      # 上传至release的资源
-      - name: Upload release binaries
-        uses: alexellis/upload-assets@0.2.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          asset_paths: '["./build/app/outputs/apk/release/SmsF_*"]'
+          fail_on_unmatched_files: true
+          files: ${{ env.APK_DIR }}/*.apk
+          body: |
+            ## SmsForwarder 精简版 ${{ steps.rel.outputs.tag }}
+
+            基于上游 [pppscn/SmsForwarder](https://github.com/pppscn/SmsForwarder) 的精简分支。
+
+            ### 本包信息
+            - **ABI**：仅 `arm64-v8a`（64 位 ARM，现代安卓真机）
+            - **构建类型**：Release，已签名
+
+            ### 与上游的差异
+            - 发送通道只保留 **邮箱 / Server酱·Turbo / 微信（本地网关）**
+            - 移除：自动任务、主动控制（客户端 + 服务端 HTTP API）、内网穿透 FRPC、定位、在线更新、短信指令、Tinker
+            - 保留：短信 / 来电 / APP 通知转发、规则、日志、应用列表、Cactus 保活
+
+            ### 安装提示
+            - 本包使用**新的签名密钥**，与上游官方包签名不同。若手机上装过官方版，请先卸载再安装。
+            - 如果之前装过本项目更早的构建包，签名一致，可直接覆盖安装。

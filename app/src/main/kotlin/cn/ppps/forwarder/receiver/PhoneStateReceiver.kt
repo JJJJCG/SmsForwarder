@@ -13,9 +13,6 @@ abstract class PhoneStateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 
-        //纯客户端模式
-        if (SettingUtils.enablePureClientMode) return
-
         //总开关
         if (!SettingUtils.enablePhone) return
 

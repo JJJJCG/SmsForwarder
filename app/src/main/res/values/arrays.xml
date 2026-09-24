@@ -7,10 +7,6 @@
         <item>@string/menu_senders_step</item>
         <item>@string/menu_settings_step</item>
         <item />
-        <item>@string/menu_tasks</item>
-        <item>@string/menu_server</item>
-        <item>@string/menu_client</item>
-        <item>@string/menu_frpc</item>
         <item>@string/menu_apps</item>
         <item />
         <item>@string/menu_help</item>
@@ -23,10 +19,6 @@
         <item>@drawable/ic_menu_send</item>
         <item>@drawable/ic_menu_settings</item>
         <item />
-        <item>@drawable/ic_menu_task</item>
-        <item>@drawable/ic_menu_server</item>
-        <item>@drawable/ic_menu_client</item>
-        <item>@drawable/ic_menu_frpc</item>
         <item>@drawable/ic_menu_app</item>
         <item />
         <item>@drawable/ic_menu_help</item>
@@ -108,6 +100,13 @@
     <string-array name="task_type_option">
         <item>@string/task_type_option_mine</item>
         <item>@string/task_type_option_fixed</item>
+    </string-array>
+
+    <!--微信本地网关请求方式-->
+    <string-array name="wechat_mode_option">
+        <item>@string/wechat_mode_json</item>
+        <item>@string/wechat_mode_text</item>
+        <item>@string/wechat_mode_get</item>
     </string-array>
 
     <string-array name="MailType">

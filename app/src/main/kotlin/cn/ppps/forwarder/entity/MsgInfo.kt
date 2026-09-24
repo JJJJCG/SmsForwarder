@@ -7,7 +7,6 @@ import cn.ppps.forwarder.App.Companion.CALL_TYPE_MAP
 import cn.ppps.forwarder.R
 import cn.ppps.forwarder.utils.AppUtils
 import cn.ppps.forwarder.utils.BatteryUtils
-import cn.ppps.forwarder.utils.HttpServerUtils
 import cn.ppps.forwarder.utils.Log
 import cn.ppps.forwarder.utils.PhoneUtils
 import cn.ppps.forwarder.utils.SettingUtils
@@ -129,7 +128,6 @@ data class MsgInfo(
                 encoderName
             )
             .replaceAppNameTag(from, encoderName)
-            .replaceLocationTag(encoderName)
             .replaceContactNameTag(encoderName)
             .replacePhoneAreaTag(encoderName)
             .regexReplace(regexReplace)
@@ -245,30 +243,6 @@ data class MsgInfo(
         }
 
         return this.replaceTag(getString(R.string.tag_app_name), appName)
-    }
-
-    //替换{{LOCATION}}标签
-    private fun String.replaceLocationTag(encoderName: String = ""): String {
-        if (TextUtils.isEmpty(this)) return this
-
-        val location = HttpServerUtils.apiLocationCache
-        var locationStr = location.toString()
-        var address = location.address
-        when (encoderName) {
-            "Gson" -> {
-                locationStr = toJsonStr(locationStr)
-                address = toJsonStr(address)
-            }
-
-            "URLEncoder" -> {
-                locationStr = URLEncoder.encode(locationStr, "UTF-8")
-                address = URLEncoder.encode(address, "UTF-8")
-            }
-        }
-        return this.replaceTag(getString(R.string.tag_location), locationStr)
-            .replaceTag(getString(R.string.tag_location_longitude), location.longitude.toString())
-            .replaceTag(getString(R.string.tag_location_latitude), location.latitude.toString())
-            .replaceTag(getString(R.string.tag_location_address), address)
     }
 
     //直接插入json字符串需要转义

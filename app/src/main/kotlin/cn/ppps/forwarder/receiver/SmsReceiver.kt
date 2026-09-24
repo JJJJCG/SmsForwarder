@@ -13,7 +13,6 @@ import cn.ppps.forwarder.entity.MsgInfo
 import cn.ppps.forwarder.utils.Log
 import cn.ppps.forwarder.utils.PhoneUtils
 import cn.ppps.forwarder.utils.SettingUtils
-import cn.ppps.forwarder.utils.SmsCommandUtils
 import cn.ppps.forwarder.utils.Worker
 import cn.ppps.forwarder.workers.SendWorker
 import com.xuexiang.xrouter.utils.TextUtils
@@ -29,9 +28,6 @@ class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         try {
-            //纯客户端模式
-            if (SettingUtils.enablePureClientMode) return
-
             //过滤广播
             if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION
                 && intent.action != Telephony.Sms.Intents.SMS_DELIVER_ACTION
@@ -61,12 +57,6 @@ class SmsReceiver : BroadcastReceiver() {
                 }
             }
             Log.d(TAG, "from = $from, msg = $msg")
-
-            //短信指令
-            if (SettingUtils.enableSmsCommand && msg.startsWith("smsf#")) {
-                doSmsCommand(context, from, msg)
-                return
-            }
 
             //总开关
             if (!SettingUtils.enableSms) return
@@ -119,30 +109,6 @@ class SmsReceiver : BroadcastReceiver() {
         } catch (e: Exception) {
             Log.e(TAG, "Parsing SMS failed: " + e.message.toString())
         }
-    }
-
-    //处理短信指令
-    private fun doSmsCommand(context: Context, from: String, message: String) {
-        var safePhone = SettingUtils.smsCommandSafePhone
-        Log.d(TAG, "safePhone = $safePhone")
-
-        if (!TextUtils.isEmpty(safePhone)) {
-            var isSafePhone = false
-            safePhone = safePhone.replace(";", ",").replace("；", ",").replace("，", ",").trim()
-            for (phone in safePhone.split(",")) {
-                if (!TextUtils.isEmpty(phone.trim()) && from.endsWith(phone.trim())) {
-                    isSafePhone = true
-                    break
-                }
-            }
-            if (!isSafePhone) {
-                Log.d(TAG, "from = $from is not safePhone = $safePhone")
-                return
-            }
-        }
-
-        val smsCommand = message.substring(5)
-        SmsCommandUtils.execute(context, smsCommand)
     }
 
     private fun handleMmsData(context: Context, data: ByteArray) {

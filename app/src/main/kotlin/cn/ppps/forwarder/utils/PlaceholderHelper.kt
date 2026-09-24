@@ -36,12 +36,12 @@ class PlaceholderHelper private constructor() {
                     titleAnimation.duration = 600
                     return getAnimationRectanglePlaceholder(view, titleAnimation, placeHolderColor, 5)
                 }
-                R.id.tv_pkg_name, R.id.tv_duration, R.id.tv_phone_number, R.id.tv_content -> {
+                R.id.tv_pkg_name, R.id.tv_content -> {
                     val summaryAnimation2: Animation = ScaleAnimation(0.5f, 1f, 1f, 1f)
                     summaryAnimation2.duration = 400
                     return getAnimationRectanglePlaceholder(view, summaryAnimation2, placeHolderColor, 5)
                 }
-                R.id.iv_app_icon, R.id.iv_image, R.id.iv_sim_image, R.id.sb_letter, R.id.iv_copy, R.id.iv_call, R.id.iv_reply -> {
+                R.id.iv_app_icon, R.id.iv_image, R.id.iv_sim_image, R.id.iv_copy -> {
                     val imageAnimation: Animation = ScaleAnimation(0.5f, 1f, 0.5f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
                     imageAnimation.duration = 800
                     return getAnimationOvalPlaceholder(view, imageAnimation, placeHolderColor)

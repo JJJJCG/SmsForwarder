@@ -33,9 +33,6 @@ class NotificationService : NotificationListenerService() {
     }
 
     override fun onListenerDisconnected() {
-        //纯客户端模式
-        if (SettingUtils.enablePureClientMode) return
-
         //总开关
         if (!SettingUtils.enableAppNotify) return
 
@@ -48,9 +45,6 @@ class NotificationService : NotificationListenerService() {
     @SuppressLint("DiscouragedPrivateApi")
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         try {
-            //纯客户端模式
-            if (SettingUtils.enablePureClientMode) return
-
             //异常通知跳过
             val notification = sbn?.notification ?: return
             val extras = notification.extras ?: return

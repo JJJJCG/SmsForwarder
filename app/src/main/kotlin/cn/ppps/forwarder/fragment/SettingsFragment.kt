@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Criteria
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -36,25 +35,16 @@ import cn.ppps.forwarder.adapter.spinner.AppListSpinnerAdapter
 import cn.ppps.forwarder.core.BaseFragment
 import cn.ppps.forwarder.databinding.FragmentSettingsBinding
 import cn.ppps.forwarder.entity.SimInfo
-import cn.ppps.forwarder.fragment.client.CloneFragment
 import cn.ppps.forwarder.receiver.BootCompletedReceiver
-import cn.ppps.forwarder.service.BluetoothScanService
 import cn.ppps.forwarder.service.ForegroundService
-import cn.ppps.forwarder.service.LocationService
 import cn.ppps.forwarder.service.NotificationService
-import cn.ppps.forwarder.utils.ACTION_RESTART
-import cn.ppps.forwarder.utils.ACTION_START
-import cn.ppps.forwarder.utils.ACTION_STOP
 import cn.ppps.forwarder.utils.ACTION_UPDATE_NOTIFICATION
 import cn.ppps.forwarder.utils.AppUtils.getAppPackageName
-import cn.ppps.forwarder.utils.BluetoothUtils
 import cn.ppps.forwarder.utils.CommonUtils
 import cn.ppps.forwarder.utils.DataProvider
 import cn.ppps.forwarder.utils.EVENT_LOAD_APP_LIST
 import cn.ppps.forwarder.utils.EXTRA_UPDATE_NOTIFICATION
-import cn.ppps.forwarder.utils.KEY_DEFAULT_SELECTION
 import cn.ppps.forwarder.utils.KeepAliveUtils
-import cn.ppps.forwarder.utils.LocationUtils
 import cn.ppps.forwarder.utils.Log
 import cn.ppps.forwarder.utils.PhoneUtils
 import cn.ppps.forwarder.utils.ProximitySensorScreenHelper
@@ -71,12 +61,9 @@ import com.hjq.permissions.permission.base.IPermission
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.xuexiang.xaop.annotation.SingleClick
 import com.xuexiang.xpage.annotation.Page
-import com.xuexiang.xpage.core.PageOption
 import com.xuexiang.xui.widget.actionbar.TitleBar
 import com.xuexiang.xui.widget.button.SmoothCheckBox
 import com.xuexiang.xui.widget.button.switchbutton.SwitchButton
-import com.xuexiang.xui.widget.dialog.materialdialog.DialogAction
-import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
 import com.xuexiang.xui.widget.picker.XSeekBar
 import com.xuexiang.xui.widget.picker.widget.builder.OptionsPickerBuilder
 import com.xuexiang.xui.widget.picker.widget.listener.OnOptionsSelectListener
@@ -120,15 +107,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                 GuideTipsDialog.showTipsForce(requireContext())
             }
         })
-        titleBar!!.addAction(object : TitleBar.ImageAction(R.drawable.ic_restore) {
-            @SingleClick
-            override fun performAction(view: View) {
-                PageOption.to(CloneFragment::class.java)
-                    .putInt(KEY_DEFAULT_SELECTION, 1) //默认离线模式
-                    .setNewActivity(true)
-                    .open(this@SettingsFragment)
-            }
-        })
         return titleBar
     }
 
@@ -146,12 +124,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         //转发应用通知
         switchEnableAppNotify(binding!!.sbEnableAppNotify, binding!!.scbCancelAppNotify, binding!!.scbNotUserPresent)
 
-        //发现蓝牙设备服务
-        switchEnableBluetooth(binding!!.sbEnableBluetooth, binding!!.layoutBluetoothSetting, binding!!.xsbScanInterval, binding!!.scbIgnoreAnonymous)
-        //GPS定位功能
-        switchEnableLocation(binding!!.sbEnableLocation, binding!!.layoutLocationSetting, binding!!.rgAccuracy, binding!!.rgPowerRequirement, binding!!.xsbMinInterval, binding!!.xsbMinDistance)
-        //短信指令
-        switchEnableSmsCommand(binding!!.sbEnableSmsCommand, binding!!.etSafePhone)
         //靠近听筒关屏
         switchEnableCloseToEarpieceTurnOffScreen(binding!!.layoutEnableCloseToEarpieceTurnOffScreen, binding!!.sbEnableCloseToEarpieceTurnOffScreen)
         //启动时异步获取已安装App信息
@@ -205,10 +177,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         switchSmsTemplate(binding!!.sbSmsTemplate)
         //自定义模板
         editSmsTemplate(binding!!.etSmsTemplate)
-        //纯客户端模式
-        switchDirectlyToClient(binding!!.sbDirectlyToClient)
-        //纯自动任务模式
-        switchDirectlyToTask(binding!!.sbDirectlyToTask)
         //调试模式
         switchDebugMode(binding!!.sbDebugMode)
         //多语言设置
@@ -528,246 +496,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         scbNotUserPresent.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
             SettingUtils.enableNotUserPresent = isChecked
         }
-    }
-
-    //发现蓝牙设备服务
-    private fun switchEnableBluetooth(@SuppressLint("UseSwitchCompatOrMaterialCode") sbEnableBluetooth: SwitchButton, layoutBluetoothSetting: LinearLayout, xsbScanInterval: XSeekBar, scbIgnoreAnonymous: SmoothCheckBox) {
-        sbEnableBluetooth.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            SettingUtils.enableBluetooth = isChecked
-            layoutBluetoothSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
-            if (isChecked) {
-                XXPermissions.with(this)
-                    .permission(PermissionLists.getBluetoothScanPermission())
-                    .permission(PermissionLists.getBluetoothConnectPermission())
-                    .permission(PermissionLists.getBluetoothAdvertisePermission())
-                    .permission(PermissionLists.getAccessFineLocationPermission())
-                    .request(object : OnPermissionCallback {
-                        override fun onResult(grantedList: MutableList<IPermission>, deniedList: MutableList<IPermission>) {
-                            val allGranted = deniedList.isEmpty()
-                            if (!allGranted) {
-                                // 判断请求失败的权限是否被用户勾选了不再询问的选项
-                                val doNotAskAgain = XXPermissions.isDoNotAskAgainPermissions(requireActivity(), deniedList)
-                                if (doNotAskAgain) {
-                                    XToastUtils.error(R.string.toast_denied_never)
-                                    XXPermissions.startPermissionActivity(requireContext(), deniedList)
-                                }
-                                // 处理权限请求失败的逻辑
-                                XToastUtils.warning(getString(R.string.enable_bluetooth) + ": " + getString(R.string.toast_granted_part))
-                                SettingUtils.enableBluetooth = false
-                                sbEnableBluetooth.isChecked = false
-                                restartBluetoothService(ACTION_STOP)
-                                return
-                            }
-                            restartBluetoothService(ACTION_START)
-                        }
-                    })
-            } else {
-                restartBluetoothService(ACTION_STOP)
-            }
-        }
-        val isEnable = SettingUtils.enableBluetooth
-        sbEnableBluetooth.isChecked = isEnable
-        layoutBluetoothSetting.visibility = if (isEnable) View.VISIBLE else View.GONE
-
-        //扫描蓝牙设备间隔
-        xsbScanInterval.setDefaultValue((SettingUtils.bluetoothScanInterval / 1000).toInt())
-        xsbScanInterval.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
-            if (newValue * 1000L != SettingUtils.bluetoothScanInterval) {
-                SettingUtils.bluetoothScanInterval = newValue * 1000L
-                restartBluetoothService()
-            }
-        }
-
-        //是否忽略匿名设备
-        scbIgnoreAnonymous.isChecked = SettingUtils.bluetoothIgnoreAnonymous
-        scbIgnoreAnonymous.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
-            SettingUtils.bluetoothIgnoreAnonymous = isChecked
-            restartBluetoothService()
-        }
-
-    }
-
-    //重启蓝牙扫描服务
-    private fun restartBluetoothService(action: String = ACTION_RESTART) {
-        if (!initViewsFinished) return
-        Log.d(TAG, "restartBluetoothService, action: $action")
-        val serviceIntent = Intent(requireContext(), BluetoothScanService::class.java)
-        //如果蓝牙功能已启用，但是系统蓝牙功能不可用，则关闭蓝牙功能
-        if (SettingUtils.enableBluetooth && (!BluetoothUtils.isBluetoothEnabled() || !BluetoothUtils.hasBluetoothCapability(App.context))) {
-            XToastUtils.error(getString(R.string.toast_bluetooth_not_enabled))
-            SettingUtils.enableBluetooth = false
-            binding!!.sbEnableBluetooth.isChecked = false
-            binding!!.layoutBluetoothSetting.visibility = View.GONE
-            serviceIntent.action = ACTION_STOP
-        } else {
-            serviceIntent.action = action
-        }
-        requireContext().startService(serviceIntent)
-    }
-
-    //GPS定位服务
-    private fun switchEnableLocation(@SuppressLint("UseSwitchCompatOrMaterialCode") sbEnableLocation: SwitchButton, layoutLocationSetting: LinearLayout, rgAccuracy: RadioGroup, rgPowerRequirement: RadioGroup, xsbMinInterval: XSeekBar, xsbMinDistance: XSeekBar) {
-        sbEnableLocation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            SettingUtils.enableLocation = isChecked
-            layoutLocationSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
-            if (isChecked) {
-                XXPermissions.with(this)
-                    .permission(PermissionLists.getAccessCoarseLocationPermission())
-                    .permission(PermissionLists.getAccessFineLocationPermission())
-                    .permission(PermissionLists.getAccessBackgroundLocationPermission())
-                    .request(object : OnPermissionCallback {
-                        override fun onResult(grantedList: MutableList<IPermission>, deniedList: MutableList<IPermission>) {
-                            val allGranted = deniedList.isEmpty()
-                            if (!allGranted) {
-                                // 判断请求失败的权限是否被用户勾选了不再询问的选项
-                                val doNotAskAgain = XXPermissions.isDoNotAskAgainPermissions(requireActivity(), deniedList)
-                                if (doNotAskAgain) {
-                                    XToastUtils.error(getString(R.string.enable_location) + ": " + getString(R.string.toast_denied_never))
-                                    XXPermissions.startPermissionActivity(requireContext(), deniedList)
-                                }
-                                // 处理权限请求失败的逻辑
-                                XToastUtils.error(getString(R.string.enable_location) + ": " + getString(R.string.toast_denied))
-                                SettingUtils.enableLocation = false
-                                sbEnableLocation.isChecked = false
-                                restartLocationService(ACTION_STOP)
-                                return
-                            }
-                            restartLocationService(ACTION_START)
-                        }
-                    })
-            } else {
-                restartLocationService(ACTION_STOP)
-            }
-        }
-        val isEnable = SettingUtils.enableLocation
-        sbEnableLocation.isChecked = isEnable
-        layoutLocationSetting.visibility = if (isEnable) View.VISIBLE else View.GONE
-
-        //设置位置精度：高精度（默认）
-        rgAccuracy.check(
-            when (SettingUtils.locationAccuracy) {
-                Criteria.ACCURACY_FINE -> R.id.rb_accuracy_fine
-                Criteria.ACCURACY_COARSE -> R.id.rb_accuracy_coarse
-                Criteria.NO_REQUIREMENT -> R.id.rb_accuracy_no_requirement
-                else -> R.id.rb_accuracy_fine
-            }
-        )
-        rgAccuracy.setOnCheckedChangeListener { _: RadioGroup?, checkedId: Int ->
-            SettingUtils.locationAccuracy = when (checkedId) {
-                R.id.rb_accuracy_fine -> Criteria.ACCURACY_FINE
-                R.id.rb_accuracy_coarse -> Criteria.ACCURACY_COARSE
-                R.id.rb_accuracy_no_requirement -> Criteria.NO_REQUIREMENT
-                else -> Criteria.ACCURACY_FINE
-            }
-            restartLocationService()
-        }
-
-        //设置电量消耗：低电耗（默认）
-        rgPowerRequirement.check(
-            when (SettingUtils.locationPowerRequirement) {
-                Criteria.POWER_HIGH -> R.id.rb_power_requirement_high
-                Criteria.POWER_MEDIUM -> R.id.rb_power_requirement_medium
-                Criteria.POWER_LOW -> R.id.rb_power_requirement_low
-                Criteria.NO_REQUIREMENT -> R.id.rb_power_requirement_no_requirement
-                else -> R.id.rb_power_requirement_low
-            }
-        )
-        rgPowerRequirement.setOnCheckedChangeListener { _: RadioGroup?, checkedId: Int ->
-            SettingUtils.locationPowerRequirement = when (checkedId) {
-                R.id.rb_power_requirement_high -> Criteria.POWER_HIGH
-                R.id.rb_power_requirement_medium -> Criteria.POWER_MEDIUM
-                R.id.rb_power_requirement_low -> Criteria.POWER_LOW
-                R.id.rb_power_requirement_no_requirement -> Criteria.NO_REQUIREMENT
-                else -> Criteria.POWER_LOW
-            }
-            restartLocationService()
-        }
-
-        //设置位置更新最小时间间隔（单位：毫秒）； 默认间隔：10000毫秒，最小间隔：1000毫秒
-        xsbMinInterval.setDefaultValue((SettingUtils.locationMinInterval / 1000).toInt())
-        xsbMinInterval.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
-            if (newValue * 1000L != SettingUtils.locationMinInterval) {
-                SettingUtils.locationMinInterval = newValue * 1000L
-                restartLocationService()
-            }
-        }
-
-        //设置位置更新最小距离（单位：米）；默认距离：0米
-        xsbMinDistance.setDefaultValue(SettingUtils.locationMinDistance)
-        xsbMinDistance.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
-            if (newValue != SettingUtils.locationMinDistance) {
-                SettingUtils.locationMinDistance = newValue
-                restartLocationService()
-            }
-        }
-    }
-
-    //重启定位服务
-    private fun restartLocationService(action: String = ACTION_RESTART) {
-        if (!initViewsFinished) return
-        Log.d(TAG, "restartLocationService, action: $action")
-        val serviceIntent = Intent(requireContext(), LocationService::class.java)
-        //如果定位功能已启用，但是系统定位功能不可用，则关闭定位功能
-        if (SettingUtils.enableLocation && (!LocationUtils.isLocationEnabled(App.context) || !LocationUtils.hasLocationCapability(App.context))) {
-            XToastUtils.error(getString(R.string.toast_location_not_enabled))
-            SettingUtils.enableLocation = false
-            binding!!.sbEnableLocation.isChecked = false
-            binding!!.layoutLocationSetting.visibility = View.GONE
-            serviceIntent.action = ACTION_STOP
-        } else {
-            serviceIntent.action = action
-        }
-        requireContext().startService(serviceIntent)
-    }
-
-    //接受短信指令
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private fun switchEnableSmsCommand(sbEnableSmsCommand: SwitchButton, etSafePhone: EditText) {
-        sbEnableSmsCommand.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            SettingUtils.enableSmsCommand = isChecked
-            etSafePhone.visibility = if (isChecked) View.VISIBLE else View.GONE
-            if (isChecked) {
-                XXPermissions.with(this)
-                    // 系统设置
-                    .permission(PermissionLists.getWriteSettingsPermission())
-                    // 接收短信
-                    .permission(PermissionLists.getReceiveSmsPermission())
-                    // 发送短信
-                    .permission(PermissionLists.getSendSmsPermission())
-                    // 读取短信
-                    .permission(PermissionLists.getReadSmsPermission())
-                    .request(object : OnPermissionCallback {
-                        override fun onResult(grantedList: MutableList<IPermission>, deniedList: MutableList<IPermission>) {
-                            val allGranted = deniedList.isEmpty()
-                            if (!allGranted) {
-                                // 判断请求失败的权限是否被用户勾选了不再询问的选项
-                                val doNotAskAgain = XXPermissions.isDoNotAskAgainPermissions(requireActivity(), deniedList)
-                                if (doNotAskAgain) {
-                                    XToastUtils.error(R.string.toast_denied_never)
-                                    XXPermissions.startPermissionActivity(requireContext(), deniedList)
-                                }
-                                // 处理权限请求失败的逻辑
-                                XToastUtils.error(getString(R.string.sms_command) + ": " + getString(R.string.toast_denied))
-                                SettingUtils.enableSmsCommand = false
-                                sbEnableSmsCommand.isChecked = false
-                                return
-                            }
-                        }
-                    })
-            }
-        }
-        val isEnable = SettingUtils.enableSmsCommand
-        sbEnableSmsCommand.isChecked = isEnable
-        etSafePhone.visibility = if (isEnable) View.VISIBLE else View.GONE
-
-        etSafePhone.setText(SettingUtils.smsCommandSafePhone)
-        etSafePhone.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable) {
-                SettingUtils.smsCommandSafePhone = etSafePhone.text.toString().trim().removeSuffix("\n")
-            }
-        })
     }
 
     //靠近听筒关屏
@@ -1116,32 +844,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                 SettingUtils.smsTemplate = textSmsTemplate.text.toString().trim()
             }
         })
-    }
-
-    //纯客户端模式
-    private fun switchDirectlyToClient(@SuppressLint("UseSwitchCompatOrMaterialCode") switchDirectlyToClient: SwitchButton) {
-        switchDirectlyToClient.isChecked = SettingUtils.enablePureClientMode
-        switchDirectlyToClient.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            SettingUtils.enablePureClientMode = isChecked
-            if (isChecked) {
-                MaterialDialog.Builder(requireContext()).content(getString(R.string.enabling_pure_client_mode)).positiveText(R.string.lab_yes).onPositive { _: MaterialDialog?, _: DialogAction? ->
-                    XUtil.exitApp()
-                }.negativeText(R.string.lab_no).show()
-            }
-        }
-    }
-
-    //纯自动任务模式
-    private fun switchDirectlyToTask(@SuppressLint("UseSwitchCompatOrMaterialCode") switchDirectlyToTask: SwitchButton) {
-        switchDirectlyToTask.isChecked = SettingUtils.enablePureTaskMode
-        switchDirectlyToTask.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            SettingUtils.enablePureTaskMode = isChecked
-            if (isChecked) {
-                MaterialDialog.Builder(requireContext()).content(getString(R.string.enabling_pure_client_mode)).positiveText(R.string.lab_yes).onPositive { _: MaterialDialog?, _: DialogAction? ->
-                    XUtil.exitApp()
-                }.negativeText(R.string.lab_no).show()
-            }
-        }
     }
 
     //调试模式

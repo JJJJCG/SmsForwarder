@@ -237,9 +237,6 @@
 # 如果使用了 单类注入，即不定义接口实现 IProvider，需添加下面规则，保护实现
 -keep class * implements com.xuexiang.xrouter.facade.template.IProvider
 
-# xupdate
--keep class com.xuexiang.xupdate.entity.** { *; }
-
 # xvideo
 -keep class com.xuexiang.xvideo.jniinterface.** { *; }
 
@@ -271,7 +268,6 @@
 -keep class cn.ppps.forwarder.core.http.entity.** {*;}
 -keep class cn.ppps.forwarder.database.entity.** {*;}
 -keep class cn.ppps.forwarder.entity.** {*;}
--keep class cn.ppps.forwarder.server.model.** {*;}
 
 # javax.mail
 -dontwarn com.sun.**
@@ -282,8 +278,6 @@
 -keep class javax.activation.** { *;}
 -keep class com.smailnet.emailkit.** { *;}
 -keep class cn.ppps.forwarder.utils.mail.** {*;}
--keep class com.gitee.xuankaicat.kmnkt.** {*;}
--keep class org.eclipse.paho.client.** {*;}
 
 -keep public class com.xuexiang.xrouter.routes.**{*;}
 -keep class * implements com.xuexiang.xrouter.facade.template.ISyringe{*;}
@@ -307,10 +301,6 @@
 
 # MultiLanguages
 -keep class com.hjq.language.** {*;}
-
-# crontab解析
--keep class gatewayapps.crondroid.** { *; }
--keep class net.redhogs.cronparser.** { *; }
 
 # 忽略所有 R8 stack map warnings
 -ignorewarnings

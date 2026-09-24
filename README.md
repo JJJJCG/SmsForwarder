@@ -1,6 +1,38 @@
 ![SmsForwarder](pic/SmsForwarder.png)
 
-# SmsForwarder-短信转发器
+# SmsForwarder-短信转发器（精简版）
+
+> ⚠️ 本仓库是上游 `pppscn/SmsForwarder` 的**个人精简分支**，只保留「通知转发」核心能力。
+>
+> **保留**：短信 / 来电 / APP 通知的监控与按规则转发；保活（Cactus）；规则、通道、日志、应用列表。
+> **发送通道只剩 3 个**：邮箱、Server酱·Turbo、微信（本地网关）。
+> **已移除**：自动任务、主动控制（客户端/服务端）、内网穿透 FRPC、定位、在线更新、短信指令、Tinker 热修复。
+>
+> 相比上游：Kotlin 源码 339 → 157 个文件（47,135 → 19,988 行），布局 101 → 36 个，并移除了 21.9 MB 的
+> `frpclib.aar`。详见 [`精简评估报告.md`](精简评估报告.md)。
+
+## 微信（本地网关）通道
+
+发送到本机运行的微信网关，地址与令牌在应用内的通道配置页填写（默认 `127.0.0.1:9901`），
+支持三种请求方式：
+
+```bash
+# 标准 JSON
+curl -X POST http://127.0.0.1:9901/v1/wechat -H "Authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{"text":"洗衣机洗完了"}'
+# → {"ok":true,"chars":7,"truncated":false,"ms":1830}
+
+# 裸文本
+curl -X POST http://127.0.0.1:9901/v1/wechat -H "Authorization: Bearer $TOKEN" \
+     --data-binary '服务器磁盘 91% 了'
+
+# 浏览器 / 不便 POST 的场合
+curl "http://127.0.0.1:9901/v1/wechat?token=$TOKEN&text=测试"
+```
+
+> 标题模板留空时只推送正文；填写后按「标题\n正文」拼接。
+
+--------
 
 [English Version](README_en.md)
 
@@ -10,11 +42,7 @@
 
 短信转发器——不仅只转发短信，备用机必备神器！
 
-监控Android手机短信、来电、APP通知，并根据指定规则转发到其他手机：钉钉群自定义机器人、钉钉企业内机器人、企业微信群机器人、企业微信应用消息、飞书群机器人、飞书企业应用、邮箱、bark、webhook、Tele****机器人、Server酱、PushPlus、手机短信等。
-
-包括主动控制服务端与客户端，让你轻松远程发短信、查短信、查通话、查话簿、查电量等。（V3.0 新增）
-
-自动任务・快捷指令，轻松自动化，助您事半功倍，更多时间享受亲情陪伴！（v3.3 新增）
+监控Android手机短信、来电、APP通知，并根据指定规则转发到其他手机：邮箱、Server酱·Turbo、微信（本地网关）。
 
 > 注意：从`2022-06-06`开始，原`Java版`的代码归档到`v2.x`分支，不再更新！
 

@@ -16,8 +16,8 @@ buildscript {
             classpath deps.booster.task_processed_res
             classpath deps.booster.task_resource_deredundancy
         }
-        //AndServer
-        classpath 'cn.ppps.andserver:plugin:2.1.12'
+        //AndServer（已随 客户端/服务端 模块移除）
+        //classpath 'cn.ppps.andserver:plugin:2.1.12'
     }
 }
 

@@ -1,17 +1,10 @@
 package cn.ppps.forwarder.utils
 
-import android.location.Criteria
 import cn.ppps.forwarder.R
 import com.xuexiang.xutil.resource.ResUtils.getString
 
 class SettingUtils private constructor() {
     companion object {
-
-        //是否启动时检查更新
-        var autoCheckUpdate: Boolean by SharedPreference(AUTO_CHECK_UPDATE, true)
-
-        //是否加入SmsF预览体验计划
-        var joinPreviewProgram: Boolean by SharedPreference(JOIN_PREVIEW_PROGRAM, false)
 
         //是否同意隐私政策
         var isAgreePrivacy: Boolean by SharedPreference(IS_AGREE_PRIVACY_KEY, false)
@@ -42,10 +35,6 @@ class SettingUtils private constructor() {
 
         //是否转发应用通知
         var enableAppNotify: Boolean by SharedPreference(SP_ENABLE_APP_NOTIFY, false)
-
-        //是否接受短信指令
-        var enableSmsCommand: Boolean by SharedPreference(SP_ENABLE_SMS_COMMAND, false)
-        var smsCommandSafePhone: String by SharedPreference(SP_SMS_COMMAND_SAFE_PHONE, "")
 
         //是否靠近听筒关屏
         var enableCloseToEarpieceTurnOffScreen: Boolean by SharedPreference(SP_ENABLE_CLOSE_TO_EARPIECE_TURN_OFF_SCREEN, false)
@@ -131,41 +120,8 @@ class SettingUtils private constructor() {
         //自定义模板
         var smsTemplate: String by SharedPreference(SP_SMS_TEMPLATE, "")
 
-        //是否纯客户端模式
-        var enablePureClientMode: Boolean by SharedPreference(SP_PURE_CLIENT_MODE, false)
-
-        //是否纯任务模式
-        var enablePureTaskMode: Boolean by SharedPreference(SP_PURE_TASK_MODE, false)
-
         //是否调试模式
         var enableDebugMode: Boolean by SharedPreference(SP_DEBUG_MODE, false)
-
-        //是否启用定位功能
-        var enableLocation: Boolean by SharedPreference(SP_LOCATION, false)
-
-        //设置位置精度：高精度
-        var locationAccuracy: Int by SharedPreference(SP_LOCATION_ACCURACY, Criteria.ACCURACY_FINE)
-
-        //设置电量消耗：低电耗
-        var locationPowerRequirement: Int by SharedPreference(SP_LOCATION_POWER_REQUIREMENT, Criteria.POWER_LOW)
-
-        //设置位置更新最小时间间隔（单位：毫秒）； 默认间隔：10000毫秒，最小间隔：1000毫秒
-        var locationMinInterval: Long by SharedPreference(SP_LOCATION_MIN_INTERVAL, 10000L)
-
-        //设置位置更新最小距离（单位：米）；默认距离：0米
-        var locationMinDistance: Int by SharedPreference(SP_LOCATION_MIN_DISTANCE, 0)
-
-        //是否跟随系统语言
-        //var isFlowSystemLanguage: Boolean by SharedPreference(SP_IS_FLOW_SYSTEM_LANGUAGE, false)
-
-        //是否启用发现蓝牙设备服务
-        var enableBluetooth: Boolean by SharedPreference(SP_BLUETOOTH, false)
-
-        //扫描蓝牙设备间隔
-        var bluetoothScanInterval: Long by SharedPreference(SP_BLUETOOTH_SCAN_INTERVAL, 10000L)
-
-        //是否忽略匿名设备
-        var bluetoothIgnoreAnonymous: Boolean by SharedPreference(SP_BLUETOOTH_IGNORE_ANONYMOUS, true)
     }
 
     init {

@@ -26,7 +26,6 @@ import cn.ppps.forwarder.App.Companion.APP_TAG_MAP
 import cn.ppps.forwarder.App.Companion.BATTERY_TAG_MAP
 import cn.ppps.forwarder.App.Companion.CALL_TAG_MAP
 import cn.ppps.forwarder.App.Companion.COMMON_TAG_MAP
-import cn.ppps.forwarder.App.Companion.LOCATION_TAG_MAP
 import cn.ppps.forwarder.App.Companion.NETWORK_TAG_MAP
 import cn.ppps.forwarder.App.Companion.SMS_TAG_MAP
 import cn.ppps.forwarder.R
@@ -342,16 +341,6 @@ class CommonUtils private constructor() {
             }
         }
 
-        fun restartApplication() {
-            val context = App.context
-            val packageManager = context.packageManager
-            val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-            val componentName = intent?.component
-            val mainIntent = Intent.makeRestartActivityTask(componentName)
-            context.startActivity(mainIntent)
-            XUtil.exitApp()
-        }
-
         // 动态创建标签按钮并设置点击事件(将标签插入指定输入框)
         fun createTagButtons(context: Context, gridLayout: GridLayout, editText: EditText, scene: String = "basic", excludeButtons: Array<String> = emptyArray()) {
             // 将排除的按钮转换成一个集合，方便查找
@@ -368,9 +357,6 @@ class CommonUtils private constructor() {
                 else -> CALL_TAG_MAP + SMS_TAG_MAP + APP_TAG_MAP
             }.toMutableMap()
 
-            if (SettingUtils.enableLocation) {
-                allButtons += LOCATION_TAG_MAP
-            }
             if (scene == "all") {
                 allButtons += BATTERY_TAG_MAP
                 allButtons += NETWORK_TAG_MAP
