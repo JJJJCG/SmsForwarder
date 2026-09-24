@@ -41,11 +41,6 @@ configurations.each { configuration ->
         //页面路由
         configuration.dependencies.add(dependencies.create(deps.xlibrary.xrouter_compiler))
     }
-
-    if (isNeedLeakcanary.toBoolean() && configuration.name.equals("debugImplementation")) {
-        //内存泄漏监测leak
-        configuration.dependencies.add(dependencies.create(deps.leakcanary))
-    }
 }
 
 configurations.configureEach {
