@@ -34,6 +34,52 @@ curl "http://127.0.0.1:9901/v1/wechat?token=$TOKEN&text=测试"
 
 --------
 
+## 构建与发布
+
+> 只产出 **arm64-v8a** 单包，Release 已签名。
+
+### GitHub Actions（推荐）
+
+工作流 [`.github/workflows/Release.yml`](.github/workflows/Release.yml)：
+
+- **推标签触发**：`git tag v3.5.0-slim && git push origin v3.5.0-slim`
+- **手动触发**：Actions → Release → Run workflow，填写 release 标签
+
+两种方式都会：构建 → 签名 → 上传 Artifact → 创建 GitHub Release 并附上 APK。
+
+### 签名密钥（Secrets）
+
+仓库里没有 keystore（`.gitignore` 已忽略 `/keystore`）。CI 从以下 Secrets 还原：
+
+| Secret | 说明 |
+|---|---|
+| `KEYSTORE_BASE64` | keystore 文件的 base64（`base64 -w0 keystore/smsf-slim.p12`） |
+| `KEYSTORE_PASSWORD` | keystore 口令 |
+| `KEY_ALIAS` | 密钥别名（当前为 `smsf`） |
+| `KEY_PASSWORD` | 密钥口令 |
+
+本地构建把 `keystore/keystore.properties` 放好即可（格式见下），AGP 会自动读取：
+
+```properties
+keyAlias=smsf
+keyPassword=******
+storeFile=../keystore/smsf-slim.p12
+storePassword=******
+storeType=PKCS12
+```
+
+> ⚠️ 该密钥是自签的，与上游官方包签名不同：**装过官方版的手机需要先卸载**。
+> 请务必备份 `keystore/` 目录，丢失后无法再对已安装的旧版本做覆盖升级。
+
+### 本地构建
+
+```bash
+./gradlew assembleRelease
+# 产物：build/app/outputs/apk/release/SmsF_<版本>_<版本号>_arm64-v8a_release.apk
+```
+
+--------
+
 [English Version](README_en.md)
 
 [![GitHub release](https://img.shields.io/github/release/pppscn/SmsForwarder.svg)](https://github.com/pppscn/SmsForwarder/releases) [![GitHub stars](https://img.shields.io/github/stars/pppscn/SmsForwarder)](https://github.com/pppscn/SmsForwarder/stargazers) [![GitHub forks](https://img.shields.io/github/forks/pppscn/SmsForwarder)](https://github.com/pppscn/SmsForwarder/network/members) [![GitHub issues](https://img.shields.io/github/issues/pppscn/SmsForwarder)](https://github.com/pppscn/SmsForwarder/issues) [![GitHub license](https://img.shields.io/github/license/pppscn/SmsForwarder)](https://github.com/pppscn/SmsForwarder/blob/main/LICENSE)
