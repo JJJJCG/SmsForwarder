@@ -35,6 +35,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--转发通话记录：读取通话记录，用于「转发通话记录」开关的权限校验与内容组装-->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <!--Android 9（API 级别 28）或更高版本并使用前台服务，则其必须请求 FOREGROUND_SERVICE 权限-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
