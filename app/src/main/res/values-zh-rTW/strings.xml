@@ -322,7 +322,7 @@
     <string name="server_chan_openid">抄送OpenID</string>
     <string name="server_chan_openid_tips">提示：只支持測試號和企業微信應用消息通道</string>
     <string name="server_chan_openid_hint">選填，多個openid用半角逗號,隔開</string>
-    <string name="wechat">微信（本機閘道）</string>
+    <string name="wechat_gateway">微信（本機閘道）</string>
     <string name="wechat_gateway_host">閘道位址</string>
     <string name="wechat_gateway_host_tips">提示：微信閘道所在的主機</string>
     <string name="wechat_gateway_host_hint">例如 127.0.0.1 或 192.168.1.5</string>

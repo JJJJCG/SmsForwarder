@@ -78,7 +78,7 @@ class WeChatFragment : BaseFragment<FragmentSendersWechatBinding?>(), View.OnCli
     }
 
     override fun initTitle(): TitleBar? {
-        titleBar = super.initTitle()!!.setImmersive(false).setTitle(R.string.wechat)
+        titleBar = super.initTitle()!!.setImmersive(false).setTitle(R.string.wechat_gateway)
         return titleBar
     }
 

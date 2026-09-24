@@ -321,7 +321,7 @@
     <string name="server_chan_openid">CC OpenID</string>
     <string name="server_chan_openid_tips">Tip: Only test accounts and Wework application message channels are supported</string>
     <string name="server_chan_openid_hint">Opt., multiple openids are separated by commas</string>
-    <string name="wechat">WeChat (Local Gateway)</string>
+    <string name="wechat_gateway">WeChat (Local Gateway)</string>
     <string name="wechat_gateway_host">Gateway Host</string>
     <string name="wechat_gateway_host_tips">Hint: host running the WeChat gateway</string>
     <string name="wechat_gateway_host_hint">e.g. 127.0.0.1 or 192.168.1.5</string>

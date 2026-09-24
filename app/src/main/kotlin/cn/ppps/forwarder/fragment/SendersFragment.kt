@@ -81,7 +81,7 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
             R.drawable.icon_serverchan
         ),
         PageInfo(
-            getString(R.string.wechat),
+            getString(R.string.wechat_gateway),
             "cn.ppps.forwarder.fragment.senders.WeChatFragment",
             "{\"\":\"\"}",
             CoreAnim.slide,

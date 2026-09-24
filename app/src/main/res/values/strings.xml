@@ -352,7 +352,7 @@
     <string name="server_chan_openid">抄送OpenID</string>
     <string name="server_chan_openid_tips">提示：只支持测试号和企业微信应用消息通道</string>
     <string name="server_chan_openid_hint">选填，多个openid用半角逗号,隔开</string>
-    <string name="wechat">微信（本地网关）</string>
+    <string name="wechat_gateway">微信（本地网关）</string>
     <string name="wechat_gateway_host">网关地址</string>
     <string name="wechat_gateway_host_tips">提示：微信网关所在的主机</string>
     <string name="wechat_gateway_host_hint">例如 127.0.0.1 或 192.168.1.5</string>
