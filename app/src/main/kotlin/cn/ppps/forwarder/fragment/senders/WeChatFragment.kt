@@ -72,7 +72,7 @@ class WeChatFragment : BaseFragment<FragmentSendersWechatBinding?>(), View.OnCli
 
     override fun viewBindingInflate(
         inflater: LayoutInflater,
-        container: ViewGroup?,
+        container: ViewGroup,
     ): FragmentSendersWechatBinding {
         return FragmentSendersWechatBinding.inflate(inflater, container, false)
     }

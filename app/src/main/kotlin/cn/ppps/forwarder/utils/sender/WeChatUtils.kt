@@ -61,57 +61,75 @@ class WeChatUtils private constructor() {
 
             val requestUrl = buildRequestUrl(setting)
             val token = setting.token.trim()
+            val authHeader = "Bearer $token"
             Log.i(TAG, "requestUrl:$requestUrl, mode:${setting.mode}, text:$text")
 
-            val builder = if (setting.mode == WECHAT_MODE_GET) XHttp.get(requestUrl) else XHttp.post(requestUrl)
-            builder.keepJson(true)
+            //注意：XHttp 的 upJson/upString 只存在于 BaseBodyRequest 上，
+            //不能用中间变量接收（会退化成 BaseRequest 导致无法解析），所以每个分支各写完整链式调用
+            val callBack = object : SimpleCallBack<String>() {
 
-            //GET 方式令牌放 query，POST 方式令牌放 Authorization 头
-            if (!TextUtils.isEmpty(token)) {
-                if (setting.mode == WECHAT_MODE_GET) {
-                    builder.params("token", token)
-                } else {
-                    builder.headers("Authorization", "Bearer $token")
+                override fun onError(e: ApiException) {
+                    Log.e(TAG, e.detailMessage)
+                    val status = 0
+                    SendUtils.updateLogs(logId, status, e.displayMessage)
+                    SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
                 }
+
+                override fun onSuccess(response: String) {
+                    Log.i(TAG, response)
+                    val resp = try {
+                        Gson().fromJson(response, WeChatResult::class.java)
+                    } catch (e: Exception) {
+                        null
+                    }
+                    val status = if (resp?.ok == true) 2 else 0
+                    val detail = if (resp?.ok == true) {
+                        response + "\n字符数:${resp.chars}, 截断:${resp.truncated}, 耗时:${resp.ms}ms"
+                    } else {
+                        response
+                    }
+                    SendUtils.updateLogs(logId, status, detail)
+                    SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
+                }
+
             }
 
             when (setting.mode) {
-                WECHAT_MODE_GET -> builder.params("text", text)
-                WECHAT_MODE_TEXT -> builder.upString(text, MEDIA_TYPE)
-                else -> builder.upJson(Gson().toJson(mapOf("text" to text)))
+                //GET：token 与 text 都放 query
+                WECHAT_MODE_GET -> XHttp.get(requestUrl)
+                    .keepJson(true)
+                    .apply {
+                        params("text", text)
+                        if (!TextUtils.isEmpty(token)) params("token", token)
+                    }
+                    .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
+                    .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间
+                    .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000) //超时重试叠加延时
+                    .addInterceptor(LoggingInterceptor(logId)) //增加一个log拦截器, 记录请求日志
+                    .execute(callBack)
+
+                //裸文本：--data-binary 等价物
+                WECHAT_MODE_TEXT -> XHttp.post(requestUrl)
+                    .keepJson(true)
+                    .apply { if (!TextUtils.isEmpty(token)) headers("Authorization", authHeader) }
+                    .upString(text, MEDIA_TYPE)
+                    .retryCount(SettingUtils.requestRetryTimes)
+                    .retryDelay(SettingUtils.requestDelayTime * 1000)
+                    .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000)
+                    .addInterceptor(LoggingInterceptor(logId))
+                    .execute(callBack)
+
+                //标准 JSON：{"text":"..."}
+                else -> XHttp.post(requestUrl)
+                    .keepJson(true)
+                    .apply { if (!TextUtils.isEmpty(token)) headers("Authorization", authHeader) }
+                    .upJson(Gson().toJson(mapOf("text" to text)))
+                    .retryCount(SettingUtils.requestRetryTimes)
+                    .retryDelay(SettingUtils.requestDelayTime * 1000)
+                    .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000)
+                    .addInterceptor(LoggingInterceptor(logId))
+                    .execute(callBack)
             }
-
-            builder.retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
-                .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间
-                .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000) //超时重试叠加延时
-                .addInterceptor(LoggingInterceptor(logId)) //增加一个log拦截器, 记录请求日志
-                .execute(object : SimpleCallBack<String>() {
-
-                    override fun onError(e: ApiException) {
-                        Log.e(TAG, e.detailMessage)
-                        val status = 0
-                        SendUtils.updateLogs(logId, status, e.displayMessage)
-                        SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
-                    }
-
-                    override fun onSuccess(response: String) {
-                        Log.i(TAG, response)
-                        val resp = try {
-                            Gson().fromJson(response, WeChatResult::class.java)
-                        } catch (e: Exception) {
-                            null
-                        }
-                        val status = if (resp?.ok == true) 2 else 0
-                        val detail = if (resp?.ok == true) {
-                            response + "\n字符数:${resp.chars}, 截断:${resp.truncated}, 耗时:${resp.ms}ms"
-                        } else {
-                            response
-                        }
-                        SendUtils.updateLogs(logId, status, detail)
-                        SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
-                    }
-
-                })
         }
 
         /**
