@@ -6,6 +6,7 @@ import androidx.room.DatabaseView
 import cn.ppps.forwarder.R
 import cn.ppps.forwarder.utils.TYPE_EMAIL
 import cn.ppps.forwarder.utils.TYPE_SERVERCHAN
+import cn.ppps.forwarder.utils.TYPE_SERVERCHAN3
 import cn.ppps.forwarder.utils.TYPE_WECHAT
 import kotlinx.parcelize.Parcelize
 import java.util.Date
@@ -43,6 +44,7 @@ data class LogsDetail(
         get() = when (senderType) {
             TYPE_EMAIL -> R.drawable.icon_email
             TYPE_SERVERCHAN -> R.drawable.icon_serverchan
+            TYPE_SERVERCHAN3 -> R.drawable.icon_serverchan3
             TYPE_WECHAT -> R.drawable.icon_wechat
             else -> R.drawable.ic_forwarder
         }

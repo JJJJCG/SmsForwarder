@@ -20,6 +20,7 @@ import cn.ppps.forwarder.database.viewmodel.BaseViewModelFactory
 import cn.ppps.forwarder.database.viewmodel.SenderViewModel
 import cn.ppps.forwarder.databinding.FragmentSendersBinding
 import cn.ppps.forwarder.fragment.senders.EmailFragment
+import cn.ppps.forwarder.fragment.senders.Serverchan3Fragment
 import cn.ppps.forwarder.fragment.senders.ServerchanFragment
 import cn.ppps.forwarder.fragment.senders.WeChatFragment
 import cn.ppps.forwarder.utils.KEY_SENDER_CLONE
@@ -28,6 +29,7 @@ import cn.ppps.forwarder.utils.KEY_SENDER_TYPE
 import cn.ppps.forwarder.utils.Log
 import cn.ppps.forwarder.utils.TYPE_EMAIL
 import cn.ppps.forwarder.utils.TYPE_SERVERCHAN
+import cn.ppps.forwarder.utils.TYPE_SERVERCHAN3
 import cn.ppps.forwarder.utils.TYPE_WECHAT
 import cn.ppps.forwarder.utils.XToastUtils
 import com.scwang.smartrefresh.layout.api.RefreshLayout
@@ -63,7 +65,7 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
     private var currentStatus: Int = 1
 
     //注意：SENDER_FRAGMENT_LIST 的每个元素必须与 SENDER_TYPE_LIST 同下标一一对应
-    private val SENDER_TYPE_LIST = listOf(TYPE_EMAIL, TYPE_SERVERCHAN, TYPE_WECHAT)
+    private val SENDER_TYPE_LIST = listOf(TYPE_EMAIL, TYPE_SERVERCHAN, TYPE_SERVERCHAN3, TYPE_WECHAT)
 
     private var SENDER_FRAGMENT_LIST = listOf(
         PageInfo(
@@ -79,6 +81,13 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
             "{\"\":\"\"}",
             CoreAnim.slide,
             R.drawable.icon_serverchan
+        ),
+        PageInfo(
+            getString(R.string.server_chan3),
+            "cn.ppps.forwarder.fragment.senders.Serverchan3Fragment",
+            "{\"\":\"\"}",
+            CoreAnim.slide,
+            R.drawable.icon_serverchan3
         ),
         PageInfo(
             getString(R.string.wechat_gateway),
@@ -227,6 +236,7 @@ class SendersFragment : BaseFragment<FragmentSendersBinding?>(),
         return when (type) {
             TYPE_EMAIL -> EmailFragment::class.java
             TYPE_SERVERCHAN -> ServerchanFragment::class.java
+            TYPE_SERVERCHAN3 -> Serverchan3Fragment::class.java
             TYPE_WECHAT -> WeChatFragment::class.java
             else -> EmailFragment::class.java
         }

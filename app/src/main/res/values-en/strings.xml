@@ -321,6 +321,17 @@
     <string name="server_chan_openid">CC OpenID</string>
     <string name="server_chan_openid_tips">Tip: Only test accounts and Wework application message channels are supported</string>
     <string name="server_chan_openid_hint">Opt., multiple openids are separated by commas</string>
+    <string name="server_chan3">ServerChan³</string>
+    <string name="server_chan3_send_key_tips">Hint: starts with sctp; you may also paste the API URL</string>
+    <string name="server_chan3_send_key_hint">e.g. sctp1234tXXXXXXXXXXXXXXXX</string>
+    <string name="server_chan3_tags">Tags</string>
+    <string name="server_chan3_tags_tips">Hint: separate multiple tags with a vertical bar |</string>
+    <string name="server_chan3_tags_hint">Optional, e.g. alert|report</string>
+    <string name="server_chan3_short">Short Summary</string>
+    <string name="server_chan3_short_tips">Hint: message card summary, recommended for markdown</string>
+    <string name="server_chan3_short_hint">Optional</string>
+    <string name="invalid_server_chan3_sendkey">Invalid SendKey: it should start with sctp, or paste the API URL from the SendKey page</string>
+    <string name="invalid_server_chan3_tags">Invalid tags: separate multiple tags with a bar, and do not start or end with one</string>
     <string name="wechat_gateway">WeChat (Local Gateway)</string>
     <string name="wechat_gateway_host">Gateway Host</string>
     <string name="wechat_gateway_host_tips">Hint: host running the WeChat gateway</string>

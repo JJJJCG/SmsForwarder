@@ -322,6 +322,17 @@
     <string name="server_chan_openid">抄送OpenID</string>
     <string name="server_chan_openid_tips">提示：只支持测试号和企业微信应用消息通道</string>
     <string name="server_chan_openid_hint">选填，多个openid用半角逗号,隔开</string>
+    <string name="server_chan3">Server酱³</string>
+    <string name="server_chan3_send_key_tips">提示：以 sctp 开头，也可直接粘贴 SendKey 页的 API 地址</string>
+    <string name="server_chan3_send_key_hint">例如 sctp1234tXXXXXXXXXXXXXXXX</string>
+    <string name="server_chan3_tags">标签</string>
+    <string name="server_chan3_tags_tips">提示：多个标签用竖线|隔开</string>
+    <string name="server_chan3_tags_hint">选填，例如 服务器报警|报告</string>
+    <string name="server_chan3_short">简短描述</string>
+    <string name="server_chan3_short_tips">提示：消息卡片摘要，推 Markdown 时建议填写</string>
+    <string name="server_chan3_short_hint">选填</string>
+    <string name="invalid_server_chan3_sendkey">SendKey 格式不正确：应以 sctp 开头，或直接填写 SendKey 页的 API 地址</string>
+    <string name="invalid_server_chan3_tags">标签格式不正确：多个标签用竖线隔开，且首尾不能是竖线</string>
     <string name="wechat_gateway">微信（本地网关）</string>
     <string name="wechat_gateway_host">网关地址</string>
     <string name="wechat_gateway_host_tips">提示：微信网关所在的主机</string>

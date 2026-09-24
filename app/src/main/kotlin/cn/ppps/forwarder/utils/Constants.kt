@@ -109,6 +109,7 @@ const val SENDER_LOGIC_RETRY = "Retry"
 const val TYPE_EMAIL = 1
 const val TYPE_SERVERCHAN = 6
 const val TYPE_WECHAT = 16
+const val TYPE_SERVERCHAN3 = 17
 
 //微信本地网关：请求方式
 const val WECHAT_MODE_JSON = "json"      //标准 JSON  POST

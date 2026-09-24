@@ -11,9 +11,11 @@ import cn.ppps.forwarder.database.entity.Rule
 import cn.ppps.forwarder.entity.MsgInfo
 import cn.ppps.forwarder.entity.result.SendResponse
 import cn.ppps.forwarder.entity.setting.EmailSetting
+import cn.ppps.forwarder.entity.setting.Serverchan3Setting
 import cn.ppps.forwarder.entity.setting.ServerchanSetting
 import cn.ppps.forwarder.entity.setting.WeChatSetting
 import cn.ppps.forwarder.utils.sender.EmailUtils
+import cn.ppps.forwarder.utils.sender.Serverchan3Utils
 import cn.ppps.forwarder.utils.sender.ServerchanUtils
 import cn.ppps.forwarder.utils.sender.WeChatUtils
 import cn.ppps.forwarder.workers.SendLogicWorker
@@ -99,6 +101,11 @@ object SendUtils {
                 TYPE_SERVERCHAN -> {
                     val settingVo = Gson().fromJson(sender.jsonSetting, ServerchanSetting::class.java)
                     ServerchanUtils.sendMsg(settingVo, msgInfo, rule, senderIndex, logId, msgId)
+                }
+
+                TYPE_SERVERCHAN3 -> {
+                    val settingVo = Gson().fromJson(sender.jsonSetting, Serverchan3Setting::class.java)
+                    Serverchan3Utils.sendMsg(settingVo, msgInfo, rule, senderIndex, logId, msgId)
                 }
 
                 TYPE_WECHAT -> {

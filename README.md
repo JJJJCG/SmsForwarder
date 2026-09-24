@@ -5,7 +5,7 @@
 > ⚠️ 本仓库是上游 `pppscn/SmsForwarder` 的**个人精简分支**，只保留「通知转发」核心能力。
 >
 > **保留**：短信 / 来电 / APP 通知的监控与按规则转发；保活（Cactus）；规则、通道、日志、应用列表。
-> **发送通道只剩 3 个**：邮箱、Server酱·Turbo、微信（本地网关）。
+> **发送通道只剩 4 个**：邮箱、Server酱·Turbo、Server酱³、微信（本地网关）。
 > **已移除**：自动任务、主动控制（客户端/服务端）、内网穿透 FRPC、定位、在线更新、短信指令、Tinker 热修复。
 >
 > 相比上游：Kotlin 源码 339 → 157 个文件（47,135 → 19,988 行），布局 101 → 36 个，并移除了 21.9 MB 的
@@ -31,6 +31,23 @@ curl "http://127.0.0.1:9901/v1/wechat?token=$TOKEN&text=测试"
 ```
 
 > 标题模板留空时只推送正文；填写后按「标题\n正文」拼接。
+
+## Server酱³ 通道
+
+与 Server酱·Turbo **不是同一套用户体系，SendKey 不通用**，两者在通道列表里是两个独立通道：
+
+| 通道 | 接口地址 | SendKey 前缀 |
+|---|---|---|
+| Server酱·Turbo | `https://sctapi.ftqq.com/{SENDKEY}.send` | `SCT` |
+| Server酱³ | `https://{uid}.push.ft07.com/send/{SENDKEY}.send` | `sctp` |
+
+在通道配置页填入 SendKey 即可，`uid` 会自动从 SendKey 中提取（规则 `/^sctp(\d+)t/`）；
+也可以直接粘贴 SendKey 页面给出的完整 API 地址。另外支持两个 Server酱³ 专有参数：
+
+- **标签**：多个标签用竖线 `|` 分隔，例如 `服务器报警|报告`
+- **简短描述**：消息卡片的摘要，推送 Markdown 时建议填写
+
+> 官方文档：<http://doc.ft07.com/zh/serverchan3/server/api>
 
 --------
 
@@ -88,7 +105,7 @@ storeType=PKCS12
 
 短信转发器——不仅只转发短信，备用机必备神器！
 
-监控Android手机短信、来电、APP通知，并根据指定规则转发到其他手机：邮箱、Server酱·Turbo、微信（本地网关）。
+监控Android手机短信、来电、APP通知，并根据指定规则转发到其他手机：邮箱、Server酱·Turbo、Server酱³、微信（本地网关）。
 
 > 注意：从`2022-06-06`开始，原`Java版`的代码归档到`v2.x`分支，不再更新！
 
