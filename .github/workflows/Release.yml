@@ -42,14 +42,26 @@ jobs:
           distribution: zulu
           java-version: '11'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install SDK components
+      # 注意：不要用 android-actions/setup-android，
+      # 它会下载需要 JDK17 的 cmdline-tools，与本项目 AGP 7.2.2 需要的 JDK11 冲突。
+      # runner 镜像已预装 SDK（cmdline-tools 12.0，兼容 JDK11），直接用它即可。
+      - name: Install Android SDK components
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-33" "build-tools;33.0.1" "platform-tools"
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "sdkmanager=$SDKMANAGER"
+          "$SDKMANAGER" --version
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install "platforms;android-33" "build-tools;33.0.1" "platform-tools"
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "--- installed ---"
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
 
       - name: Restore keystore
         env:
